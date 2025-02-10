@@ -20,6 +20,7 @@
   background-color: #FFFFFF;
   overflow-y: auto;  /* Enables vertical scrolling */
   -webkit-overflow-scrolling: touch;
+  
 }
 
 #overlay {
@@ -188,21 +189,21 @@
   word-wrap: break-word;
 }
 
+
 #barkoderView {
-  min-height: 85vh;
-  height: 100%;
   position: relative;
+  left: 0px;
+  width: 100%;
   top: 60px;
+  z-index: -1 !important;
 }
 
-#barkoderView .fullResultImage {
+.fullResultImage {
   height: 100%;
   width: 100%;
 }
 
-.animate-btnContainer {
-  animation: slideUp 0.5s ease-out;
-}
+
 
 .btnContainer {
   display: flex;
@@ -216,10 +217,13 @@
   background-color: #FFFFFF;
   position: absolute;
   bottom: 0px;
-  z-index: 9999;
+  left: 0;
+  z-index: 10;
   border-radius: 28px 28px 0 0;
-  
-  
+}
+
+.animate-btnContainer {
+  animation: slideUp 0.5s ease-out;
 }
 
 .btnContainer .buttons {
@@ -293,7 +297,7 @@
   background-color: #00000080;
   position: absolute;
   z-index: 999;
-  top: 50%;
+  top: 30%;
   left: 50%;
   transform: translate(-50%, 50%);
   color: #FFFFFF;

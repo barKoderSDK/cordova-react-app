@@ -149,11 +149,32 @@ const BarcodeScannerApp = () => {
   const barkoderViewRef = useRef(null);
   const [scannedResult, setScannedResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    barkoderViewRef.current = document.getElementById('barkoderView');
+   useEffect(() => {
+    const initializeBarkoder = async () => {
+      await window.Barkoder.registerWithLicenseKey("YOUR_KEY_HERE");
+      const boundingRect = barkoderViewRef.current.getBoundingClientRect();
+      await window.Barkoder.initialize(
+        Math.round(boundingRect.width),
+        Math.round(boundingRect.height),
+        Math.round(boundingRect.x),
+        Math.round(boundingRect.y)
+      );
 
+      setBarkoderSettings();
+      setActiveBarcodeTypes();
+    };
+    if (!isInitialized) {
+      const timeout = setTimeout(() => {
+        initializeBarkoder();
+      }, 500);
+
+      return () => clearTimeout(timeout);
+    }
   }, []);
+
+
 
   const setActiveBarcodeTypes = async () => {
       try {
@@ -181,78 +202,50 @@ const BarcodeScannerApp = () => {
       }
   };
 
-  const initializeBarkoder = async (boundingRect) => {
-  try {
-    if (window.Barkoder) {
-      await window.Barkoder.registerWithLicenseKey('ADD_YOUR_LICENSE_KEY_HERE');
-      await window.Barkoder.initialize(
-        Math.round(boundingRect.width),
-        Math.round(boundingRect.height),
-        Math.round(boundingRect.x),
-        Math.round(boundingRect.y)
-      );
-
-      // Set settings once initialized
-      await setBarkoderSettings();
-      await setActiveBarcodeTypes();
-    } else {
-      throw new Error('Barkoder plugin is not available');
-    }
-  } catch (error) {
-    console.error(error.message);
-    throw error;
-  }
-};
-
-const startScanning = async () => {
-  try {
-    const boundingRect = await barkoderViewRef.current.getBoundingClientRect();
-    await initializeBarkoder(boundingRect);
-    setIsScanning(true);
-    setScannedResult(null);
-
-    document.addEventListener('deviceready', async () => {
+  const startScanning =  () => {
+    try {
+      setIsScanning(true);
+      setScannedResult(null);
 
       if (window.Barkoder) {
-       await window.Barkoder.startScanning(
-          handleScanResult,
-          (error) => {
-            console.error('Scanning error:', error);
-            setIsScanning(false);
-          }
-        );
+        window.Barkoder.startScanning(handleScanResult, (error) => {
+          console.error("Scanning error:", error);
+          setIsScanning(false);
+        });
       } else {
-        console.error('BarkoderScanner plugin not available');
+        console.error("BarkoderScanner plugin not available");
         setIsScanning(false);
       }
-    }, false);
-  } catch (error) {
-    alert('Error: ' + error.message);
-    setIsScanning(false);
-  }
-};
+    } catch (error) {
+      alert("Error: " + error.message);
+      setIsScanning(false);
+    }
+  };
 
-const handleScanResult = async (barkoderResult) => {
+const handleScanResult = (barkoderResult) => {
   setIsScanning(false);
 
-      const decoderResults = Array.isArray(barkoderResult?.decoderResults) ? barkoderResult?.decoderResults : [barkoderResult?.decoderResults];
+  const decoderResults = Array.isArray(barkoderResult?.decoderResults)
+    ? barkoderResult.decoderResults
+    : [barkoderResult?.decoderResults];
 
-      for (const result of decoderResults) {
-        const randomId = Math.floor(Math.random() * 1000000);
-        const newScan = {
-          id: randomId,
-          textualData: JSON.stringify(result?.textualData),
-          type: JSON.stringify(result?.barcodeTypeName),
-          resultImage: "data:image/jpeg;base64," + barkoderResult?.resultImageAsBase64,
-          thumbnailImage: "data:image/jpeg;base64," + barkoderResult?.resultThumbnailsAsBase64[0],
-        };
+  const newScans = decoderResults.map((result) => {
+    return {
+      id: Math.floor(Math.random() * 1000000),
+      textualData: JSON.stringify(result?.textualData),
+      type: JSON.stringify(result?.barcodeTypeName),
+      resultImage: `data:image/jpeg;base64,${barkoderResult?.resultImageAsBase64}`,
+      thumbnailImage: `data:image/jpeg;base64,${barkoderResult?.resultThumbnailsAsBase64[0]}`,
+    };
+  });
 
-        if (newScan) {
-          setIsScanning(false);
-          setScannedResult(newScan);
-        }
-      }
+  setScannedResult(newScans[0]);
+  setFullResultImage(newScans[0].resultImage);
+  setRecentScans((prevScans) => [...prevScans, ...newScans]);
+
+  window.Barkoder.stopScanning();
 };
+
 
   const stopScanning = () => {
       window.Barkoder.stopScanning(
@@ -268,7 +261,7 @@ const handleScanResult = async (barkoderResult) => {
                 {!isScanning && ( <div className="actionButton" onClick={startScanning}>
                   <img width="40" alt="scan icon" src="/assets/scan-circle.svg" />
                 </div>
-          )}
+                )}
               <div className="result_text_img">
                 <span className="result_title">{scannedResult?.type}</span>
                 {scannedResult?.thumbnailImage && <img className="resultImage" src={scannedResult?.thumbnailImage} alt="Scanned Thumbnail" />}

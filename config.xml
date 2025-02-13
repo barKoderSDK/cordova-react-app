@@ -8,4 +8,10 @@
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
+
+    <preference name="WebViewBounce" value="false" />
+<preference name="DisallowOverscroll" value="true" />
+<preference name="UseWideViewPort" value="true" />
+<preference name="ViewportEnabled" value="true" />
+
 </widget>

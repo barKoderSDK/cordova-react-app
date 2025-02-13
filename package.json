@@ -15,15 +15,18 @@
   "devDependencies": {
     "barkoder-cordova": "^1.6.0",
     "cordova-android": "^13.0.0",
-    "cordova-browser": "^7.0.0"
+    "cordova-browser": "^7.0.0",
+    "cordova-plugin-screen-orientation": "^3.0.4",
+    "es6-promise-plugin": "^4.2.2"
   },
   "cordova": {
     "platforms": [
-      "android",
-      "browser"
+      "browser",
+      "android"
     ],
     "plugins": {
-      "barkoder-cordova-plugin": {}
+      "barkoder-cordova-plugin": {},
+      "cordova-plugin-screen-orientation": {}
     }
   }
 }

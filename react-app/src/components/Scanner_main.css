@@ -1,3 +1,11 @@
+html, body {
+  position: relative;
+}
+
+.modal {
+  z-index: 9999 !important;
+}
+
 #container {
   height: 100vh;
   text-align: center;
@@ -190,13 +198,6 @@
 }
 
 
-#barkoderView {
-  position: relative;
-  left: 0px;
-  width: 100%;
-  top: 60px;
-  z-index: -1 !important;
-}
 
 .fullResultImage {
   height: 100%;

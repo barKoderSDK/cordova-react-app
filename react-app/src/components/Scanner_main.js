@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Scanner_main.css";
 import { BarcodeType } from "../plugins/barkoder-cordova-plugin/www/BarkoderConfig.ts";
+import PopupScan from "./Popup_scan";
+
 const BarcodeScannerApp = () => {
   const barkoderViewRef = useRef(null);
   const morePopupRef = useRef(null);
@@ -40,6 +42,29 @@ const BarcodeScannerApp = () => {
   const [fullResultImage, setFullResultImage] = useState(null);
 
   useEffect(() => {
+    const initializeBarkoder = async () => {
+      await window.Barkoder.registerWithLicenseKey("YOUR_KEY_HERE");
+      const boundingRect = barkoderViewRef.current.getBoundingClientRect();
+      await window.Barkoder.initialize(
+        Math.round(boundingRect.width),
+        Math.round(boundingRect.height),
+        Math.round(boundingRect.x),
+        Math.round(boundingRect.y)
+      );
+
+      setBarkoderSettings();
+      setActiveBarcodeTypes();
+    };
+    if (!isInitialized) {
+      const timeout = setTimeout(() => {
+        initializeBarkoder();
+      }, 500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         morePopupRef.current &&
@@ -63,9 +88,9 @@ const BarcodeScannerApp = () => {
 
   const setActiveBarcodeTypes = async () => {
     try {
-      await window.Barkoder.setBarcodeTypeEnabled(BarcodeType.code128, true);
-      await window.Barkoder.setBarcodeTypeEnabled(BarcodeType.ean13, true);
-      await window.Barkoder.setBarcodeTypeEnabled(BarcodeType.qr, true);
+      window.Barkoder.setBarcodeTypeEnabled(BarcodeType.code128, true);
+      window.Barkoder.setBarcodeTypeEnabled(BarcodeType.ean13, true);
+      window.Barkoder.setBarcodeTypeEnabled(BarcodeType.qr, true);
     } catch (error) {
       console.error("Error setting active barcode types:", error);
       throw error;
@@ -78,10 +103,13 @@ const BarcodeScannerApp = () => {
       window.Barkoder.setRegionOfInterest(5, 30, 90, 40);
       window.Barkoder.setCloseSessionOnResultEnabled(true);
       // window.Barkoder.setThresholdBetweenDuplicatesScans(0);
-      window.Barkoder.setMaximumResultsCount(100);
+      window.Barkoder.setMaximumResultsCount(200);
       window.Barkoder.setImageResultEnabled(true);
+      window.Barkoder.setLocationInImageResultEnabled(true);
+      window.Barkoder.setLocationInPreviewEnabled(true);
       window.Barkoder.setBarcodeThumbnailOnResultEnabled(true);
       window.Barkoder.setBeepOnSuccessEnabled(true);
+      window.Barkoder.setVibrateOnSuccessEnabled(true);
       window.Barkoder.setPinchToZoomEnabled(true);
       window.Barkoder.setZoomFactor(currentZoomFactor);
     } catch (error) {
@@ -96,31 +124,6 @@ const BarcodeScannerApp = () => {
       window.Barkoder.setFlashEnabled(!isFlashOn);
     } else {
       console.error("BarkoderScanner plugin not available");
-    }
-  };
-
-  const initializeBarkoder = async (boundingRect) => {
-    try {
-      if (window.Barkoder) {
-        await window.Barkoder.registerWithLicenseKey("ADD_YOUR_LICENSE_KEY_HERE");
-        await window.Barkoder.initialize(
-          Math.round(boundingRect.width),
-          Math.round(boundingRect.height),
-          Math.round(boundingRect.x),
-          Math.round(boundingRect.y)
-        );
-
-        // Set settings once initialized
-        await setBarkoderSettings();
-        await setActiveBarcodeTypes();
-
-        setIsInitialized(true);
-      } else {
-        throw new Error("Barkoder plugin is not available");
-      }
-    } catch (error) {
-      console.error(error.message);
-      throw error;
     }
   };
 
@@ -143,65 +146,48 @@ const BarcodeScannerApp = () => {
     }
   };
 
-  const startScanning = async () => {
+  const startScanning =  () => {
     try {
-      const boundingRect =
-        await barkoderViewRef.current.getBoundingClientRect();
-      await initializeBarkoder(boundingRect);
       setIsScanning(true);
       setScannedResult(null);
 
-      document.addEventListener(
-        "deviceready",
-        async () => {
-          if (window.Barkoder) {
-            await window.Barkoder.startScanning(handleScanResult, (error) => {
-              console.error("Scanning error:", error);
-              setIsScanning(false);
-            });
-          } else {
-            console.error("BarkoderScanner plugin not available");
-            setIsScanning(false);
-          }
-        },
-        false
-      );
+      if (window.Barkoder) {
+        window.Barkoder.startScanning(handleScanResult, (error) => {
+          console.error("Scanning error:", error);
+          setIsScanning(false);
+        });
+      } else {
+        console.error("BarkoderScanner plugin not available");
+        setIsScanning(false);
+      }
     } catch (error) {
       alert("Error: " + error.message);
       setIsScanning(false);
     }
   };
 
-  const handleScanResult = async (barkoderResult) => {
+  const handleScanResult = (barkoderResult) => {
     setIsScanning(false);
 
     const decoderResults = Array.isArray(barkoderResult?.decoderResults)
-      ? barkoderResult?.decoderResults
+      ? barkoderResult.decoderResults
       : [barkoderResult?.decoderResults];
 
-    for (const result of decoderResults) {
-      const randomId = Math.floor(Math.random() * 1000000);
-      const newScan = {
-        id: randomId,
+    const newScans = decoderResults.map((result) => {
+      return {
+        id: Math.floor(Math.random() * 1000000),
         textualData: JSON.stringify(result?.textualData),
         type: JSON.stringify(result?.barcodeTypeName),
-        resultImage:
-          "data:image/jpeg;base64," + barkoderResult?.resultImageAsBase64,
-        thumbnailImage:
-          "data:image/jpeg;base64," +
-          barkoderResult?.resultThumbnailsAsBase64[0],
+        resultImage: `data:image/jpeg;base64,${barkoderResult?.resultImageAsBase64}`,
+        thumbnailImage: `data:image/jpeg;base64,${barkoderResult?.resultThumbnailsAsBase64[0]}`,
       };
+    });
 
-      if (newScan) {
-        setIsScanning(false);
-        setScannedResult(newScan);
-        setFullResultImage(newScan.resultImage);
-        // await window.Barkoder.stopScanning();
+    setScannedResult(newScans[0]);
+    setFullResultImage(newScans[0].resultImage);
+    setRecentScans((prevScans) => [...prevScans, ...newScans]);
 
-        const updatedScans = [...recentScans, newScan];
-        setRecentScans(updatedScans);
-      }
-    }
+    window.Barkoder.stopScanning();
   };
 
   const stopScanning = async () => {
@@ -413,6 +399,15 @@ const BarcodeScannerApp = () => {
     setSelectedBarcode(null);
   };
 
+  useEffect(() => {
+    // Cleanup the effect on component unmount
+    return () => {
+      if (window.screen.orientation) {
+        window.screen.orientation.unlock(); // Unlock orientation on cleanup
+      }
+    };
+  }, []);
+
   return (
     <div id="container">
       <div
@@ -620,32 +615,33 @@ const BarcodeScannerApp = () => {
       </div>
 
       <div
-        className="view_wrap"
-        style={{ minHeight: "100vh" }}
-      >
+        id="barkoderView"
+        ref={barkoderViewRef}
+        style={{
+          height: "58.5%",
+          position: "relative",
+          top: "60px",
+        }}
+      ></div>
+
+      {!isScanning && (
         <div
-          id="barkoderView"
-          ref={barkoderViewRef}
-          style={{
-            height: "58.5%",
-            top: "60px",
-            position: "relative",
-          }}
-        ></div>
-        {!isScanning && (
-          <div
-            style={{ position: "absolute", top: "0", height: "100%" }}
-            className="img_container"
-          >
-            <img
-              className="fullResultImage"
-              src={fullResultImage}
-              onClick={tapScan}
-              alt="Scanned Thumbnail"
-            />
-          </div>
-        )}
-      </div>
+          style={{ position: "absolute", top: "0", height: "100%" }}
+          className="img_container"
+        >
+          <img
+            className="fullResultImage"
+            src={fullResultImage}
+            onClick={tapScan}
+            alt="Scanned Thumbnail"
+          />
+        </div>
+      )}
+
+      {/* <PopupScan isOpen={scannedResult?.type} >
+                <h2>Modal Popup</h2>
+                <p>This is a React modal popup.</p>
+            </PopupScan> */}
 
       <div
         id="settingsPopup"

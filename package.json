@@ -13,7 +13,6 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "devDependencies": {
-    "barkoder-cordova": "^1.6.0",
     "cordova-android": "^13.0.0",
     "cordova-browser": "^7.0.0",
     "cordova-plugin-screen-orientation": "^3.0.4",
@@ -25,8 +24,11 @@
       "android"
     ],
     "plugins": {
-      "barkoder-cordova-plugin": {},
-      "cordova-plugin-screen-orientation": {}
+      "cordova-plugin-screen-orientation": {},
+      "barkoder-cordova-plugin": {}
     }
+  },
+  "dependencies": {
+    "barkoder-cordova": "^1.6.3"
   }
 }

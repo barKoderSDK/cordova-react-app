@@ -41,15 +41,15 @@ html, body {
     z-index: 1000;
 }
 
-#searchEnginePopup {
+#searchEnginePopup, #barcodesPopup {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 16px;
     z-index: 1001; 
-    width: 312px;
-    min-width: 280px;
+    width: 320px;
+    min-width: 300px;
     max-width: 560px;
     background: #FFFAFA;
     border-radius: 28px;
@@ -667,4 +667,118 @@ html, body {
   gap: 5px;
   padding: 0 16px;
   border-bottom: 1px solid #fff2f4;
+}
+
+
+
+
+
+
+.settings_container {
+  margin: 10px;
+}
+
+.settings_item {
+  display: flex;
+  cursor: pointer;
+}
+
+.arrow_settings_container img {
+  margin-left: 10px;
+}
+
+.barcode-checkboxes {
+  max-width: 438px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 8px;
+  grid-row-gap: 8px;
+}
+
+.barcode-checkboxes div {
+  margin: 5px 0;
+}
+
+.footer_btn_container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+button {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+#barcodesPopup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1000;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.barcode-checkboxes {
+  max-width: 438px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 8px;
+  grid-row-gap: 8px;
+}
+
+.switch_toggle {
+  text-align: start;
+  display: flex;
+}
+
+.switch_toggle input[type="checkbox"] {
+  display: none;
+}
+
+.switch_toggle label {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 10px;
+  border: 2px solid #d3d3d3;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: border 0.3s, background-color 0.3s;
+}
+
+.switch_toggle input[type="checkbox"]:checked + label {
+  border-color: #d32f2f;
+  background-color: #d32f2f;
+}
+
+.switch_toggle input[type="checkbox"]:checked + label::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  background-color: white;
+  border-radius: 50%;
+}
+
+.label_text {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
 }

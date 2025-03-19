@@ -150,6 +150,35 @@ const BarcodeScannerApp = () => {
   const [scannedResult, setScannedResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isBarcodesPopupVisible, setIsBarcodesPopupVisible] = useState(false)
+
+  const barcodeTypes = [
+    { name: "QR", type: "qr", mode: "2d" },
+    { name: "Aztec", type: "aztec", mode: "2d" },
+    { name: "Datamatrix", type: "datamatrix", mode: "2d" },
+    { name: "Dotcode", type: "dotcode", mode: "2d" },
+    { name: "Code 128", type: "code128",  mode: "1d" },
+    { name: "Code 93", type: "code93",  mode: "1d" },
+    { name: "Code 39", type: "code39",  mode: "1d" },
+    { name: "Codabar", type: "codabar",  mode: "1d" },
+    { name: "Ean 8", type: "ean8",  mode: "1d" },
+    { name: "Ean 13", type: "ean13",  mode: "1d" },
+    { name: "Postal IMB", type: "postalIMB",  mode: "1d" },
+    { name: "Postnet", type: "postnet",  mode: "1d" },
+    { name: "Planet", type: "planet",  mode: "1d" },
+    { name: "Australian Post", type: "australianPost",  mode: "1d" },
+    { name: "Royal Mail", type: "royalMail",  mode: "1d" },
+    { name: "KIX", type: "kix",  mode: "1d" },
+    { name: "Japanese Post", type: "japanesePost",  mode: "1d" }
+  ];
+
+  const [enabledBarcodes, setEnabledBarcodes] = useState(
+    barcodeTypes.reduce((acc, barcode) => {
+      acc[barcode.type] = true;
+      return acc;
+    }, {})
+  );
+
 
    useEffect(() => {
     const initializeBarkoder = async () => {
@@ -174,8 +203,6 @@ const BarcodeScannerApp = () => {
     }
   }, []);
 
-
-
   const setActiveBarcodeTypes = async () => {
       try {
           await window.Barkoder.setBarcodeTypeEnabled(BarcodeType.code128, true);
@@ -186,20 +213,28 @@ const BarcodeScannerApp = () => {
       }
   };
 
+    useEffect(() => {
+      setActiveBarcodeTypes();
+  }, [isBarcodesPopupVisible, enabledBarcodes]);
+
   const setBarkoderSettings = async () => {
-      try {
-          window.Barkoder.setRegionOfInterestVisible(true);
-          window.Barkoder.setRegionOfInterest(5, 5, 90, 90);
-          window.Barkoder.setCloseSessionOnResultEnabled(true);
-          window.Barkoder.setImageResultEnabled(true);
-          window.Barkoder.setBarcodeThumbnailOnResultEnabled(true);
-          window.Barkoder.setBeepOnSuccessEnabled(true);
-          window.Barkoder.setPinchToZoomEnabled(true);
-          window.Barkoder.setZoomFactor(2.0);
-      } catch (error) {
-          console.error('Error setting Barkoder settings:', error);
-          throw error;
-      }
+    try {
+      window.Barkoder.setRegionOfInterestVisible(true);
+      window.Barkoder.setRegionOfInterest(5, 30, 90, 40);
+      window.Barkoder.setCloseSessionOnResultEnabled(true);
+      window.Barkoder.setMaximumResultsCount(200);
+      window.Barkoder.setImageResultEnabled(true);
+      window.Barkoder.setLocationInImageResultEnabled(true);
+      window.Barkoder.setLocationInPreviewEnabled(true);
+      window.Barkoder.setBarcodeThumbnailOnResultEnabled(true);
+      window.Barkoder.setBeepOnSuccessEnabled(true);
+      window.Barkoder.setVibrateOnSuccessEnabled(true);
+      window.Barkoder.setPinchToZoomEnabled(true);
+      window.Barkoder.setZoomFactor(currentZoomFactor);
+    } catch (error) {
+      console.error("Error setting Barkoder settings:", error);
+      throw error;
+    } 
   };
 
   const startScanning =  () => {
@@ -258,10 +293,18 @@ const handleScanResult = (barkoderResult) => {
       <div id="container">
         <div id="barkoderView" ref={barkoderViewRef}> </div>
           <div className="btnContainer">
-                {!isScanning && ( <div className="actionButton" onClick={startScanning}>
-                  <img width="40" alt="scan icon" src="/assets/scan-circle.svg" />
-                </div>
-                )}
+            {!isScanning && (
+              <div
+                className="actionButton"
+                onClick={isInitialized ? tapScan : startScanning}
+              >
+                <img
+                  width="40"
+                  alt="scan icon"
+                  src="/assets/scan-circle.svg"
+                />
+              </div>
+            )}
               <div className="result_text_img">
                 <span className="result_title">{scannedResult?.type}</span>
                 {scannedResult?.thumbnailImage && <img className="resultImage" src={scannedResult?.thumbnailImage} alt="Scanned Thumbnail" />}

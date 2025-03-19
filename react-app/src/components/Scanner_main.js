@@ -40,6 +40,47 @@ const BarcodeScannerApp = () => {
   const [recentScans, setRecentScans] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [fullResultImage, setFullResultImage] = useState(null);
+  const [isBarcodesPopupVisible, setIsBarcodesPopupVisible] = useState(false)
+  const [popupType, setPopupType] = useState(null); // "1d" or "2d"
+
+  const barcodeTypes = [
+    { name: "QR", type: "qr", mode: "2d" },
+    { name: "Qr Micro", type: "qrMicro",  mode: "2d" },
+    { name: "Aztec Compact", type: "aztecCompact", mode: "2d" },
+    { name: "Aztec", type: "aztec", mode: "2d" },
+    { name: "Datamatrix", type: "datamatrix", mode: "2d" },
+    { name: "Dotcode", type: "dotcode", mode: "2d" },
+    { name: "Code 128", type: "code128",  mode: "1d" },
+    { name: "Code 93", type: "code93",  mode: "1d" },
+    { name: "Code 39", type: "code39",  mode: "1d" },
+    { name: "Codabar", type: "codabar",  mode: "1d" },
+    { name: "Code 11", type: "code11",  mode: "1d" },
+    { name: "Ean 8", type: "ean8",  mode: "1d" },
+    { name: "Ean 13", type: "ean13",  mode: "1d" },
+    { name: "Msi", type: "msi",  mode: "1d" },
+    { name: "UpcA", type: "upcA",  mode: "1d" },
+    { name: "UpcE", type: "upcE",  mode: "1d" },
+    { name: "PDF 417", type: "pdf417",  mode: "2d" },
+    { name: "Databar 14", type: "databar14",  mode: "1d" },
+    { name: "Databar Limited", type: "databarLimited",  mode: "1d" },
+    { name: "Databar Expanded", type: "databarExpanded",  mode: "1d" },
+    { name: "Postal IMB", type: "postalIMB",  mode: "1d" },
+    { name: "Postnet", type: "postnet",  mode: "1d" },
+    { name: "Planet", type: "planet",  mode: "1d" },
+    { name: "Australian Post", type: "australianPost",  mode: "1d" },
+    { name: "Royal Mail", type: "royalMail",  mode: "1d" },
+    { name: "KIX", type: "kix",  mode: "1d" },
+    { name: "Japanese Post", type: "japanesePost",  mode: "1d" }
+  ];
+
+ 
+
+  const [enabledBarcodes, setEnabledBarcodes] = useState(
+    barcodeTypes.reduce((acc, barcode) => {
+      acc[barcode.type] = true;
+      return acc;
+    }, {})
+  );
 
   useEffect(() => {
     const initializeBarkoder = async () => {
@@ -65,6 +106,10 @@ const BarcodeScannerApp = () => {
   }, []);
 
   useEffect(() => {
+      setActiveBarcodeTypes();
+  }, [isBarcodesPopupVisible, enabledBarcodes]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         morePopupRef.current &&
@@ -88,12 +133,12 @@ const BarcodeScannerApp = () => {
 
   const setActiveBarcodeTypes = async () => {
     try {
-      window.Barkoder.setBarcodeTypeEnabled(BarcodeType.code128, true);
-      window.Barkoder.setBarcodeTypeEnabled(BarcodeType.ean13, true);
-      window.Barkoder.setBarcodeTypeEnabled(BarcodeType.qr, true);
+      Object.keys(enabledBarcodes).forEach((barcodeType) => {
+        const isEnabled = enabledBarcodes[barcodeType];
+        window.Barkoder.setBarcodeTypeEnabled(BarcodeType[barcodeType], isEnabled);
+      });
     } catch (error) {
       console.error("Error setting active barcode types:", error);
-      throw error;
     }
   };
 
@@ -221,6 +266,31 @@ const BarcodeScannerApp = () => {
     }
   };
 
+  const handleOpenCodesPopup = (type) => {
+    setPopupType(type);
+    setIsBarcodesPopupVisible(true);
+  };
+
+  const handleBarcodeToggle = (barcodeType) => {
+    setEnabledBarcodes((prevState) => ({
+      ...prevState,
+      [barcodeType]: !prevState[barcodeType]
+    }));
+  };
+
+  const closeBarcodesPopup = () => {
+    setIsBarcodesPopupVisible(false);
+  };
+
+  const toggleAllBarcodes = () => {
+    const shouldEnableAll = Object.values(enabledBarcodes).includes(false);
+    const newEnabledState = Object.fromEntries(
+      barcodeTypes.map((barcode) => [barcode.type, shouldEnableAll])
+    );
+    setEnabledBarcodes(newEnabledState);
+  };
+  
+  
   const handleOpenRecentScansPopup = () => {
     if (!isRecentScansPopupVisible) {
       setIsRecentScansPopupVisible(true);
@@ -742,8 +812,8 @@ const BarcodeScannerApp = () => {
           <div className="settings_title">
             <h3 style={{ margin: "0" }}>Scanning Mode Settings</h3>
           </div>
-          <div className="settings_item">
-            <span>All 1D Codes</span>
+          <div className="settings_item" onClick={() => handleOpenCodesPopup("1d")} >
+            <span >All 1D Barcodes</span>
             <div className="arrow_settings_container">
               {" "}
               <img
@@ -752,8 +822,8 @@ const BarcodeScannerApp = () => {
               />{" "}
             </div>
           </div>
-          <div className="settings_item">
-            <span>1D Industrial</span>
+          <div className="settings_item"  onClick={() => handleOpenCodesPopup("2d")}>
+            <span>All 2D Barcodes</span>
             <div className="arrow_settings_container">
               {" "}
               <img
@@ -1018,7 +1088,7 @@ const BarcodeScannerApp = () => {
         id="overlay"
         style={{
           display:
-            isSearchEnginePopupVisible || isConfirmDeletePopupVisible
+            isSearchEnginePopupVisible || isConfirmDeletePopupVisible || isBarcodesPopupVisible
               ? "block"
               : "none",
         }}
@@ -1113,6 +1183,49 @@ const BarcodeScannerApp = () => {
         <div className="footer_btn_container">
           <button onClick={closeEnginesPopup}>Cancel</button>
           <button onClick={saveSelectedEngine}>Save</button>
+        </div>
+      </div>
+
+      <div
+        id="barcodesPopup"
+        style={{ display: isBarcodesPopupVisible ? "block" : "none" }}
+      >
+        <div style={{ padding: "8px", height: "auto", marginBottom: "16px" }}>
+          <h3
+            style={{
+              width: "100%",
+              textAlign: "start",
+              color: "#291716",
+              fontSize: "24px",
+              margin: "0",
+            }}
+          >
+           {popupType === "1d" ? "1D Barcodes" : "2D Barcodes"}
+          </h3>
+        </div>
+
+        <div className="barcode-checkboxes">
+            {barcodeTypes
+              .filter((barcode) => barcode.mode === popupType)
+              .map((barcode) => (
+                <div key={barcode.type} className="switch_toggle">
+                  <input
+                    type="checkbox"
+                    id={barcode.type}
+                    checked={enabledBarcodes[barcode.type] || false}
+                    onChange={() => handleBarcodeToggle(barcode.type)}
+                  />
+                  <label htmlFor={barcode.type}></label>
+                  <span className="slider"></span>
+                  <span className="label_text">{barcode.name}</span>
+                </div>
+              ))}
+          </div>
+      
+        <div className="footer_btn_container">
+        <button onClick={closeBarcodesPopup}>Close</button>
+          <button onClick={toggleAllBarcodes}>Toggle All</button>
+        
         </div>
       </div>
     </div>

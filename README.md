@@ -115,7 +115,7 @@ Cordova is a cross-platform app runtime that makes it easy to build web apps tha
 
 ```bash
  cd react-app
- nmp install 
+ npm install 
  npm run build
 ```
 

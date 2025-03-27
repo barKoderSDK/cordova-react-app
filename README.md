@@ -6,10 +6,10 @@ This is a starter app example with React JS, showcasing the integration of the b
 
 ## Key Features:
 
-- Utilizes VueJS for building the app's user interface.
+- Utilizes ReactJS for building the app's user interface.
 - Integrates the barKoder Barcode Scanner SDK to enable advanced barcode scanning.
 - Leverages Cordova for seamless cross-platform deployment to iOS and Android.
-- Supports a wide range of barcode types, including 1D and 2D barcodes.
+- Supports a wide range of barcode types, including 1D and 2D barcodes. Full list [can be found here.](https://barkoder.com/barcode-types)
 
 # barKoder Barcode Scanner SDK plugin for Cordova
 
@@ -17,7 +17,7 @@ The barKoder Barcode Scanner SDK is designed to transform smartphones and tablet
 
 ## Supported Barcode Types:
 
-- 1D: Codabar, Code 11, Code 25, Code 39, Code 93, Code 128, DotCode, EAN-8, EAN-13, Interleaved 2 of 5, ITF-14, MSI Plessey, Pharmacode, Telepen, UPC-A, UPC-E.
+- 1D: Codabar, Code 11, Code 25, Code 39, Code 93, Code 128, DotCode, EAN-8, EAN-13, Interleaved 2 of 5, ITF-14, MSI Plessey, Pharmacode, Telepen, UPC-A, UPC-E, Postal.
 - 2D: Aztec Code, Aztec Compact, Data Matrix, PDF417, Micro PDF417, QR Code, Micro QR Code.
 
 ## Advanced Features:
@@ -31,7 +31,7 @@ The barKoder Barcode Scanner SDK is designed to transform smartphones and tablet
 
 ## Documentation
 
-You can find full documentation about the barKoder Barcode Reader SDK here: https://docs.barkoder.com
+You can find full documentation about the barKoder Barcode Reader SDK [here.](https://barkoder.com/docs)
 
 ## Trial License
 
@@ -115,7 +115,8 @@ Cordova is a cross-platform app runtime that makes it easy to build web apps tha
 
 ```bash
  cd react-app
-npm run build
+ npm install 
+ npm run build
 ```
 
 8. **Make sure cordova.js script is included in public/index.html:**
@@ -129,6 +130,7 @@ npm run build
 
 ```bash
   cd ..
+  npm install
   cordova build android
   cordova run android
 ```

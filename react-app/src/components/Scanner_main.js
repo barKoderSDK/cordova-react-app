@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Scanner_main.css";
-import { BarcodeType } from "../plugins/barkoder-cordova-plugin/www/BarkoderConfig.ts";
+import { BarcodeType } from "../react_plugins/barkoder-cordova-plugin/BarkoderConfig.ts";
 import PopupScan from "./Popup_scan";
 
 const BarcodeScannerApp = () => {

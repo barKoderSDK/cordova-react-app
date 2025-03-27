@@ -1,13 +1,16 @@
 const ncp = require('ncp').ncp;
 const path = require('path');
+const fs = require('fs');
 
-const source = path.join(__dirname, '../build'); // React build folder
-const destination = path.join(__dirname, '../..', 'www'); // Cordova www folder
+const cordovaPluginsPath = path.join(__dirname, '..', '..', 'plugins', 'barkoder-cordova-plugin', 'www');
+const reactPluginsPath = path.join(__dirname, '..', 'src', 'react_plugins', 'barkoder-cordova-plugin');
 
-// Copy the build folder to Cordova www
-ncp(source, destination, function (err) {
+fs.mkdirSync(path.dirname(reactPluginsPath), { recursive: true });
+
+// Copy the barkoder-cordova-plugin from Cordova plugins to React src/react_plugins
+ncp(cordovaPluginsPath, reactPluginsPath, function (err) {
   if (err) {
-    return console.error('Error copying build to Cordova www:', err);
+    return console.error('Error copying barkoder-cordova-plugin:', err);
   }
-  console.log('Successfully copied build to Cordova www folder!');
+  console.log('Successfully copied barkoder-cordova-plugin to React app.');
 });

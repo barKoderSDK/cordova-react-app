@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && npm run copy-to-cordova",
+    "build": "npm run prebuild && react-scripts build",
+    "prebuild": "node ./scripts/copy-to-cordova.js",
     "copy-to-cordova": "node ./scripts/copy-to-cordova.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

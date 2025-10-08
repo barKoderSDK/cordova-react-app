@@ -29,6 +29,6 @@
     }
   },
   "dependencies": {
-    "barkoder-cordova": "^1.6.3"
+    "barkoder-cordova": "^1.6.6"
   }
 }

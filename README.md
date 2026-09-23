@@ -11,14 +11,16 @@ This is a starter app example with React JS, showcasing the integration of the b
 - Leverages Cordova for seamless cross-platform deployment to iOS and Android.
 - Supports a wide range of barcode types, including 1D and 2D barcodes. Full list [can be found here.](https://barkoder.com/barcode-types)
 
-# barKoder Barcode Scanner SDK plugin for Cordova
+# barKoder Barcode Scanner SDK plugin for Cordova (v1.7.2)
 
 The barKoder Barcode Scanner SDK is designed to transform smartphones and tablets into rugged barcode scanning devices. It boasts a robust barcode reading engine that supports various barcode types with exceptional speed and recognition rates.
 
-## Supported Barcode Types:
+## Supported Barcode Symbologies:
 
-- 1D: Codabar, Code 11, Code 25, Code 39, Code 93, Code 128, DotCode, EAN-8, EAN-13, Interleaved 2 of 5, ITF-14, MSI Plessey, Pharmacode, Telepen, UPC-A, UPC-E, Postal.
-- 2D: Aztec Code, Aztec Compact, Data Matrix, PDF417, Micro PDF417, QR Code, Micro QR Code.
+barKoder supports 30+ symbologies including:
+
+- 1D: Codabar, Code 11, Code 25, Code 32, Code 39, Code 93, Code 128, DataBar, EAN-8, EAN-13, GS1 Composite, Interleaved 2 of 5, ITF-14, MSI Plessey, Postal Barcodes, Telepen, UPC-A, UPC-E.
+- 2D: Aztec Code, Aztec Compact, Data Matrix, PDF417, MaxiCode, Micro PDF417, DotCode, QR Code, Micro QR Code.
 
 ## Advanced Features:
 
@@ -28,10 +30,19 @@ The barKoder Barcode Scanner SDK is designed to transform smartphones and tablet
 - VIN Barcode Scanning Mode for advanced scanning of Vehicle Identification Numbers.
 - DeBlur Mode for eliminating blur in EAN or UPC barcodes.
 - PDF417-LineSight for detecting severely damaged PDF417 codes.
+- Batch MultiScan for continuously scanning multiple barcodes regardless of type and density.
+- Continuous Scanning for real-time, uninterrupted multi-barcode capture.
+- MRZ Scanning for extracting Machine Readable Zone data from passports, ID cards, and travel documents.
+- Augmented Reality Overlays for displaying real-time, contextual information on top of scanned items.
 
 ## Documentation
 
-You can find full documentation about the barKoder Barcode Reader SDK [here.](https://barkoder.com/docs)
+The Cordova SDK is fully documented here:
+
+- [Installation Guide](https://barkoder.com/docs/v1/cordova/cordova-installation)
+- [General Example](https://barkoder.com/docs/v1/cordova/cordova-examples/general-example)
+- [Cordova API Reference](https://barkoder.com/docs/v1/cordova/cordova-sdk-api-reference)
+- [Cordova Examples](https://barkoder.com/docs/v1/cordova/cordova-examples)
 
 ## Trial License
 
@@ -87,7 +98,7 @@ Cordova is a cross-platform app runtime that makes it easy to build web apps tha
 4. **Add barkoder-cordova Plugin:**
 
 ```bash
- cordova plugin add barkoder-cordova
+ cordova plugin add barkoder-cordova@1.7.2
 ```
 
 5. **Create a New React Application:**
@@ -126,11 +137,12 @@ Cordova is a cross-platform app runtime that makes it easy to build web apps tha
 ```
 
 9. **Test and Run Your App:**
-   > back to cordova project root
+   > back to cordova project root, then copy the React build output into the `www` folder that Cordova packages
 
 ```bash
   cd ..
   npm install
+  cp -r react-app/build/* www/
   cordova build android
   cordova run android
 ```

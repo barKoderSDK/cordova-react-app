@@ -10,7 +10,8 @@ export enum FormattingType {
   automatic,
   gs1,
   aamva,
-  sadl
+  sadl,
+  bcbp
 }
 
 export enum MsiChecksumType {
@@ -43,6 +44,12 @@ export enum BarkoderResolution {
   HD,
   FHD,
   UHD,
+}
+
+export enum BarkoderRoiCenterMark {
+  none,
+  crosshair,
+  point,
 }
 
 export enum BarcodeType {
@@ -84,7 +91,34 @@ export enum BarcodeType {
   australianPost,
   royalMail,
   kix,
-  japanesePost
+  japanesePost,
+  maxiCode,
+  ocrText
+}
+
+export enum BarkoderARMode {
+  off,
+  interactiveDisabled,
+  interactiveEnabled,
+  nonInteractive,
+  matchFilter
+}
+  
+export enum BarkoderAROverlayRefresh {
+  smooth,
+  normal
+}
+  
+export enum BarkoderARLocationType {
+  none,
+  tight,
+  boundingBox
+}
+  
+export enum BarkoderARHeaderShowMode {
+  never,
+  always,
+  onSelected
 }
 
 export class BarkoderConfig {
@@ -99,14 +133,18 @@ export class BarkoderConfig {
   scanningIndicatorAlwaysVisible?: boolean;
   closeSessionOnResultEnabled?: boolean;
   imageResultEnabled?: boolean;
+  barcodeThumbnailOnResult?: boolean;
   locationInImageResultEnabled?: boolean;
   locationInPreviewEnabled?: boolean;
   pinchToZoomEnabled?: boolean;
   regionOfInterestVisible?: boolean;
   barkoderResolution?: BarkoderResolution;
+  roiCenterMark?: BarkoderRoiCenterMark;
+  powerSavingMode?: number;
   beepOnSuccessEnabled?: boolean;
   vibrateOnSuccessEnabled?: boolean;
   decoder?: DekoderConfig;
+  arConfig?: BarkoderARConfig;
 
   constructor(config: Partial<BarkoderConfig>) {
     Object.assign(this, config);
@@ -117,7 +155,7 @@ export class BarkoderConfig {
 export class DekoderConfig {
   aztec?: BarcodeConfig;
   aztecCompact?: BarcodeConfig;
-  qr?: BarcodeConfigWithDpmMode;
+  qr?: QRBarcodeConfig;
   qrMicro?: BarcodeConfigWithDpmMode;
   code128?: BarcodeConfigWithLength;
   code93?: BarcodeConfigWithLength;
@@ -154,9 +192,44 @@ export class DekoderConfig {
   royalMail?: BarcodeConfig;
   kix?: BarcodeConfig;
   japanesePost?: BarcodeConfig;
+  maxiCode?: BarcodeConfig;
+  ocrText?: BarcodeConfig;
   general?: GeneralSettings;
 
   constructor(config: Partial<DekoderConfig>) {
+    Object.assign(this, config);
+  }
+}
+
+export class BarkoderARConfig {
+  arMode?: BarkoderARMode;
+  resultDisappearanceDelayMs?: number;
+  locationTransitionSpeed?: number;
+  overlayRefresh?: BarkoderAROverlayRefresh;
+  selectedLocationColor?: string;
+  nonSelectedLocationColor?: string;
+  selectedLocationLineWidth?: number;
+  nonSelectedLocationLineWidth?: number;
+  locationType?: BarkoderARLocationType;
+  doubleTapToFreezeEnabled?: boolean;
+  imageResultEnabled?: boolean;
+  barcodeThumbnailOnResult?: boolean;
+  resultLimit?: number;
+  continueScanningOnLimit?: boolean;
+  emitResultsAtSessionEndOnly?: boolean;
+  headerHeight?: number;
+  headerShowMode?: BarkoderARHeaderShowMode;
+  headerMaxTextHeight?: number;
+  headerMinTextHeight?: number;
+  headerTextColorSelected?: string;
+  headerTextColorNonSelected?: string;
+  headerHorizontalTextMargin?: number;
+  headerVerticalTextMargin?: number;
+  headerTextFormat?: string;
+  returnOnlyMatchedResults?: boolean;
+  displayOnlyMatchedResults?: boolean;
+  
+  constructor(config: Partial<BarkoderARConfig>) {
     Object.assign(this, config);
   }
 }
@@ -248,6 +321,23 @@ export class BarcodeConfigWithDpmMode {
   }
 }
 
+export class QRBarcodeConfig {
+  enabled?: boolean;
+  dpmMode?: number;
+  multiPartMerge?: boolean;
+  minLength?: number;
+  maxLength?: number;
+
+  constructor(config: Partial<QRBarcodeConfig>) {
+    Object.assign(this, config);
+  }
+
+  setLengthRange(minLength: number, maxLength: number) {
+    this.minLength = minLength;
+    this.maxLength = maxLength;
+  }
+}
+
 export enum IdDocumentMasterChecksumType {
   disabled,
   enabled,
@@ -272,11 +362,12 @@ export class GeneralSettings {
   formattingType?: FormattingType;
   encodingCharacterSet?: string;
   maximumResultsCount?: number;
-  duplicatesDelayMs?: number;
   multicodeCachingDuration?: number;
   multicodeCachingEnabled?: boolean;
-  upcEanDeblur?: number;
-  enableMisshaped1D?: number;
+  upcEanDeblur?: boolean;
+  enableMisshaped1D?: boolean;
+  matchFilter?: string;
+  returnOnlyMatchedResults?: boolean;
 
   constructor(config: Partial<GeneralSettings>) {
     Object.assign(this, config);
@@ -325,19 +416,35 @@ export class DecoderResult {
   characterSet?: string | null;
   extra?: Record<string, any> | null;
   mrzImagesAsBase64?: { name: string; base64: string }[];
+  sadlImageAsBase64?: string | null;
+  locationPoints?: { x: number; y: number }[];
+  isMatched: boolean;
 
   constructor(resultMap: Record<string, any>) {
-    this.barcodeType = resultMap['barcodeType'];
-    this.barcodeTypeName = resultMap['barcodeTypeName'];
-    this.binaryDataAsBase64 = resultMap['binaryDataAsBase64'];
-    this.textualData = resultMap['textualData'];
-    this.characterSet = resultMap['characterSet'] || null;
-    this.extra = 'extra' in resultMap ? JSON.parse(resultMap['extra']) : null;
-    this.mrzImagesAsBase64 = Array.isArray(resultMap['mrzImagesAsBase64'])
-      ? resultMap['mrzImagesAsBase64'].map((image: { name: string; base64: string }) => ({
-        name: image.name,
-        base64: `data:image/jpeg;base64,${image.base64}`,
-      }))
+    this.barcodeType = resultMap["barcodeType"];
+    this.barcodeTypeName = resultMap["barcodeTypeName"];
+    this.binaryDataAsBase64 = resultMap["binaryDataAsBase64"];
+    this.textualData = resultMap["textualData"];
+    this.characterSet = resultMap["characterSet"] || null;
+    this.extra = "extra" in resultMap ? JSON.parse(resultMap["extra"]) : null;
+    this.isMatched = resultMap["isMatched"];
+    this.mrzImagesAsBase64 = Array.isArray(resultMap["mrzImagesAsBase64"])
+      ? resultMap["mrzImagesAsBase64"].map(
+          (image: { name: string; base64: string }) => ({
+            name: image.name,
+            base64: `data:image/jpeg;base64,${image.base64}`,
+          })
+        )
       : [];
+    this.sadlImageAsBase64 = this.convertToBase64(
+      resultMap["sadlImageAsBase64"]
+    );
+    this.locationPoints = Array.isArray(resultMap["locationPoints"])
+      ? resultMap["locationPoints"]
+      : undefined;
+  }
+
+  private convertToBase64(data: string | null | undefined): string | null {
+    return data ? `data:image/jpeg;base64,${data}` : null;
   }
 }
